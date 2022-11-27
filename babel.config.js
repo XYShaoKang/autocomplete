@@ -4,16 +4,18 @@
  * @returns
  */
 module.exports = api => {
-  const BABEL_ENV = api.env()
-
-  let targets = {}
-  if (BABEL_ENV === 'test') {
-    targets = { node: 'current' }
-  } else if (BABEL_ENV === 'development') {
-    targets =
-      'last 1 chrome version, last 1 firefox version, last 1 safari version'
-  } else if (BABEL_ENV === 'production') {
-    targets = '>0.2%, not dead, not op_mini all'
+  let options = {}
+  if (api.env('test')) {
+    options = { targets: { node: 'current' } }
+  } else if (api.env('development')) {
+    options = {
+      shippedProposals: true,
+      loose: true,
+    }
+  } else if (api.env('production')) {
+    options = {
+      targets: '>0.2%, not dead, not op_mini all',
+    }
   }
 
   /**
@@ -21,7 +23,7 @@ module.exports = api => {
    */
   const babelConfig = {
     presets: [
-      ['@babel/env', { targets }],
+      ['@babel/env', options],
       ['@babel/preset-react', { runtime: 'automatic' }],
       '@babel/preset-typescript',
     ],
