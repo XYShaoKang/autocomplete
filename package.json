@@ -12,10 +12,11 @@
   "license": "MIT",
   "keywords": [],
   "scripts": {
+    "dev": "vite",
     "build": "pnpm lint && pnpm build:type && rollup -c",
     "build:type": "tsc src/Autocomplete.tsx --declaration --emitDeclarationOnly --esModuleInterop --allowSyntheticDefaultImports --jsx 'react-jsx' --outDir lib",
     "test": "jest",
-    "test:watch": "jest --watch Autocomplete.test.tsx ",
+    "test:watch": "jest --watch Autocomplete.test.tsx",
     "check:type": "tsc",
     "storybook": "start-storybook -p 6006",
     "build-storybook": "build-storybook",
@@ -79,8 +80,10 @@
     "styled-components": "^5.3.6"
   },
   "dependencies": {
+    "@vitejs/plugin-react": "^2.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "styled-components": "^5.3.6"
+    "styled-components": "^5.3.6",
+    "vite": "^3.2.4"
   }
 }
