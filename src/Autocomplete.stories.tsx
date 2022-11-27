@@ -23,5 +23,22 @@ ProvideOptions.play = async ({ canvasElement }): Promise<void> => {
   const canvas = within(canvasElement)
 
   const textbox = canvas.getByRole('textbox')
+  await sleep(1000)
   await userEvent.type(textbox, '1', { delay: 100 })
 }
+
+export const SelectDemo = Template.bind({})
+SelectDemo.args = {
+  ...ProvideOptions.args,
+}
+SelectDemo.play = async ({ canvasElement }): Promise<void> => {
+  const canvas = within(canvasElement)
+
+  const textbox = canvas.getByRole('textbox')
+  await sleep(1000)
+  userEvent.type(textbox, '1')
+  await sleep(1000)
+  userEvent.click(await canvas.findByText('123'))
+}
+
+const sleep = (time: number) => new Promise(r => setTimeout(r, time))

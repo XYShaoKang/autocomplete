@@ -124,7 +124,7 @@ describe('interaction', () => {
   })
 
   it('select listitem', async () => {
-    expect.assertions(2)
+    expect.assertions(3)
 
     const options = ['123', '124', '125', '234', '2345']
     render(<Autocomplete placeholder="type text" options={options} />)
@@ -144,6 +144,7 @@ describe('interaction', () => {
 
     expect(screen.queryByRole('listitem')).not.toBeInTheDocument()
     expect(screen.getByRole('textbox')).toHaveValue('123')
+    expect(screen.getByRole('textbox')).toHaveFocus()
   })
 
   it('hover listitem', async () => {

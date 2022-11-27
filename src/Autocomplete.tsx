@@ -46,6 +46,8 @@ const Autocomplete: FC<AutocompleteProps> = ({ options = [], placeholder }) => {
   const [active, setActive] = useState(0)
   const [open, setOpen] = useDebounce(false)
   const [focus, setFocus] = useDebounce(false)
+  const selectRef = useRef(false)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const showOptions = useMemo(
     () => (value ? options.filter(v => v.indexOf(value) === 0) : []),
@@ -54,23 +56,31 @@ const Autocomplete: FC<AutocompleteProps> = ({ options = [], placeholder }) => {
 
   const handleChange: ChangeEventHandler<HTMLInputElement> = e => {
     setValue(e.target.value)
+    setOpen(true)
   }
 
   const handleBlur: FocusEventHandler<HTMLInputElement> = () => {
+    if (!selectRef.current) setFocus(false)
+    else {
+      inputRef.current!.focus()
+      selectRef.current = false
+    }
     setOpen(false)
-    setFocus(false)
   }
 
   const handleFocus: FocusEventHandler<HTMLInputElement> = () => {
-    setOpen(true)
+    if (!selectRef.current) setOpen(true)
     setFocus(true)
   }
 
   const handleSelect: MouseEventHandler<HTMLLIElement> = (): void => {
+    selectRef.current = true
+    setFocus(true)
     setValue(showOptions[active])
     setOpen(false)
     setActive(0)
   }
+
   return (
     <div
       css={css`
@@ -104,6 +114,7 @@ const Autocomplete: FC<AutocompleteProps> = ({ options = [], placeholder }) => {
         `}
       >
         <input
+          ref={inputRef}
           type="text"
           value={value}
           onChange={handleChange}
