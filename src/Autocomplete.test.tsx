@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import Autocomplete from './Autocomplete'
@@ -51,7 +51,7 @@ describe('basis', () => {
     await user.pointer({ target: input, keys: '[MouseLeft]' })
     await user.keyboard('1')
 
-    expect(screen.getByText('123')).toHaveStyle({
+    await expect(screen.findByText('123')).resolves.toHaveStyle({
       background: 'rgba(0, 0, 0, 0.04)',
     })
 
@@ -76,7 +76,7 @@ describe('interaction', () => {
     await user.pointer({ target: input, keys: '[MouseLeft]' })
     await user.keyboard('1')
 
-    expect(screen.getByText(/125/i)).toBeInTheDocument()
+    await expect(screen.findByText(/125/i)).resolves.toBeInTheDocument()
     expect(screen.queryAllByRole('listitem')).toHaveLength(3)
   })
 
@@ -111,11 +111,15 @@ describe('interaction', () => {
       target: screen.getByTestId('blank'),
       keys: '[MouseLeft]',
     })
+    await waitFor(() => {
+      // eslint-disable-next-line jest/no-conditional-in-test
+      if (screen.queryByRole('listitem')) throw new Error('等待渲染完成')
+    })
 
     expect(screen.queryByRole('listitem')).not.toBeInTheDocument()
 
     await user.pointer({ target: input, keys: '[MouseLeft]' })
-
+    await screen.findAllByRole('listitem')
     expect(screen.queryAllByRole('listitem')).toHaveLength(3)
   })
 
@@ -128,8 +132,15 @@ describe('interaction', () => {
     const input = screen.getByPlaceholderText('type text')
     await user.pointer({ target: input, keys: '[MouseLeft]' })
     await user.keyboard('1')
-    const item = screen.getByText('123')
-    await user.pointer({ target: item, keys: '[MouseLeft]' })
+
+    await user.pointer({
+      target: await screen.findByText('123'),
+      keys: '[MouseLeft]',
+    })
+    await waitFor(() => {
+      // eslint-disable-next-line jest/no-conditional-in-test
+      if (screen.queryByRole('listitem')) throw new Error('等待渲染完成')
+    })
 
     expect(screen.queryByRole('listitem')).not.toBeInTheDocument()
     expect(screen.getByRole('textbox')).toHaveValue('123')
@@ -144,7 +155,7 @@ describe('interaction', () => {
     const input = screen.getByPlaceholderText('type text')
     await user.pointer({ target: input, keys: '[MouseLeft]' })
     await user.keyboard('1')
-    await user.hover(screen.getByText('124'))
+    await user.hover(await screen.findByText('124'))
 
     expect(screen.getByText('124')).toHaveStyle({
       background: 'rgba(0, 0, 0, 0.04)',

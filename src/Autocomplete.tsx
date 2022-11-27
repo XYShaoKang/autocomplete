@@ -5,6 +5,10 @@ import {
   useState,
   useMemo,
   FocusEventHandler,
+  useRef,
+  useEffect,
+  Dispatch,
+  SetStateAction,
 } from 'react'
 import { css } from 'styled-components'
 
@@ -13,10 +17,35 @@ interface AutocompleteProps {
   placeholder?: string
 }
 
+const useDebounce = <T,>(
+  initialState: T | (() => T),
+  delay = 10
+): [T, Dispatch<SetStateAction<T>>] => {
+  const [state, setState] = useState(initialState)
+  const timer = useRef<ReturnType<typeof setTimeout>>()
+
+  const clearTimer = (): void => {
+    if (timer.current !== undefined) {
+      clearTimeout(timer.current)
+      timer.current = undefined
+    }
+  }
+  const changeState = (value: T | ((prevState: T) => T)): void => {
+    clearTimer()
+    timer.current = setTimeout(() => {
+      setState(value)
+    }, delay)
+  }
+  useEffect(() => clearTimer, [])
+
+  return [state, changeState]
+}
+
 const Autocomplete: FC<AutocompleteProps> = ({ options = [], placeholder }) => {
   const [value, setValue] = useState('')
   const [active, setActive] = useState(0)
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useDebounce(false)
+  const [focus, setFocus] = useDebounce(false)
 
   const showOptions = useMemo(
     () => (value ? options.filter(v => v.indexOf(value) === 0) : []),
@@ -25,22 +54,23 @@ const Autocomplete: FC<AutocompleteProps> = ({ options = [], placeholder }) => {
 
   const handleChange: ChangeEventHandler<HTMLInputElement> = e => {
     setValue(e.target.value)
-    setOpen(true)
-  }
-
-  const handleFocus: FocusEventHandler<HTMLInputElement> = () => {
-    setOpen(true)
   }
 
   const handleBlur: FocusEventHandler<HTMLInputElement> = () => {
     setOpen(false)
+    setFocus(false)
+  }
+
+  const handleFocus: FocusEventHandler<HTMLInputElement> = () => {
+    setOpen(true)
+    setFocus(true)
   }
 
   const handleSelect: MouseEventHandler<HTMLLIElement> = (): void => {
     setValue(showOptions[active])
     setOpen(false)
+    setActive(0)
   }
-
   return (
     <div
       css={css`
@@ -61,13 +91,16 @@ const Autocomplete: FC<AutocompleteProps> = ({ options = [], placeholder }) => {
           box-sizing: border-box;
           color: rgba(0, 0, 0, 0.88);
           cursor: pointer;
-          &:hover,
-          &:focus-within {
+          &:hover {
             border-color: #4096ff;
           }
-          &:focus-within {
-            box-shadow: 0 0 0 2px #0591ff1a;
-          }
+
+          ${focus
+            ? css`
+                border-color: #4096ff;
+                box-shadow: 0 0 0 2px #0591ff1a;
+              `
+            : ''}
         `}
       >
         <input
