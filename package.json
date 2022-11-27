@@ -14,7 +14,7 @@
   "scripts": {
     "dev": "vite",
     "build": "pnpm lint && pnpm build:type && rollup -c",
-    "build:type": "tsc src/Autocomplete.tsx --declaration --emitDeclarationOnly --esModuleInterop --allowSyntheticDefaultImports --jsx 'react-jsx' --outDir lib",
+    "build:type": "tsc --project tsconfig.build.json",
     "test": "jest",
     "test:watch": "jest --watch Autocomplete.test.tsx",
     "check:type": "tsc",
