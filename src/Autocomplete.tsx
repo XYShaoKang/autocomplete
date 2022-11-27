@@ -1,4 +1,11 @@
-import { ChangeEventHandler, FC, useState, useMemo } from 'react'
+import {
+  ChangeEventHandler,
+  FC,
+  MouseEventHandler,
+  useState,
+  useMemo,
+  FocusEventHandler,
+} from 'react'
 import { css } from 'styled-components'
 
 interface AutocompleteProps {
@@ -8,6 +15,8 @@ interface AutocompleteProps {
 
 const Autocomplete: FC<AutocompleteProps> = ({ options = [], placeholder }) => {
   const [value, setValue] = useState('')
+  const [active, setActive] = useState(0)
+  const [open, setOpen] = useState(false)
 
   const showOptions = useMemo(
     () => (value ? options.filter(v => v.indexOf(value) === 0) : []),
@@ -16,6 +25,20 @@ const Autocomplete: FC<AutocompleteProps> = ({ options = [], placeholder }) => {
 
   const handleChange: ChangeEventHandler<HTMLInputElement> = e => {
     setValue(e.target.value)
+    setOpen(true)
+  }
+
+  const handleFocus: FocusEventHandler<HTMLInputElement> = () => {
+    setOpen(true)
+  }
+
+  const handleBlur: FocusEventHandler<HTMLInputElement> = () => {
+    setOpen(false)
+  }
+
+  const handleSelect: MouseEventHandler<HTMLLIElement> = (): void => {
+    setValue(showOptions[active])
+    setOpen(false)
   }
 
   return (
@@ -51,6 +74,8 @@ const Autocomplete: FC<AutocompleteProps> = ({ options = [], placeholder }) => {
           type="text"
           value={value}
           onChange={handleChange}
+          onBlur={handleBlur}
+          onFocus={handleFocus}
           placeholder={placeholder}
           css={css`
             box-sizing: border-box;
@@ -66,7 +91,7 @@ const Autocomplete: FC<AutocompleteProps> = ({ options = [], placeholder }) => {
           `}
         />
       </div>
-      {!!showOptions.length && (
+      {!!showOptions.length && open && (
         <ul
           css={css`
             position: absolute;
@@ -79,9 +104,10 @@ const Autocomplete: FC<AutocompleteProps> = ({ options = [], placeholder }) => {
             box-sizing: border-box;
           `}
         >
-          {showOptions.map(v => (
+          {showOptions.map((v, i) => (
             <li
               key={v}
+              onMouseEnter={() => setActive(i)}
               css={css`
                 margin: 0;
                 padding: 0;
@@ -95,11 +121,9 @@ const Autocomplete: FC<AutocompleteProps> = ({ options = [], placeholder }) => {
                 transition: background 0.3s ease;
                 border-radius: 4px;
                 display: flex;
-
-                &:hover {
-                  background-color: rgba(0, 0, 0, 0.04);
-                }
+                ${active === i ? 'background-color: rgba(0, 0, 0, 0.04);' : ''}
               `}
+              onMouseDown={handleSelect}
             >
               {v}
             </li>
