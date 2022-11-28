@@ -13,10 +13,11 @@
   "keywords": [],
   "scripts": {
     "dev": "vite",
-    "build": "pnpm lint && pnpm build:type && rollup -c",
+    "build": "pnpm build:type && rollup -c",
     "build:type": "tsc --project tsconfig.build.json",
     "test": "jest",
     "test:watch": "jest --watch Autocomplete.test.tsx",
+    "coverage": "jest --coverage Autocomplete.test.tsx",
     "check:type": "tsc",
     "storybook": "start-storybook -p 6006",
     "build-storybook": "build-storybook",

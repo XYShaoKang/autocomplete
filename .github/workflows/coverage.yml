@@ -30,21 +30,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Lint
-        run: pnpm lint
-
       - name: Test
         run: pnpm test
 
-      - name: Build
-        run: pnpm build
+      - name: Coverage
+        run: pnpm coverage
 
-      - name: Release
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GIT_AUTHOR_NAME: github-actions
-          GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
-          GIT_COMMITTER_NAME: github-actions
-          GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
-        run: npx semantic-release
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
