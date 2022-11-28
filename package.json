@@ -1,6 +1,6 @@
 {
   "name": "@xyshaokang/autocomplete",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "",
   "main": "lib/Autocomplete.js",
   "module": "lib/Autocomplete.esm.js",

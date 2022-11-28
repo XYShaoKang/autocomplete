@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/XYShaoKang/autocomplete/compare/v1.0.1...v1.0.2) (2022-11-28)
+
+
+### Bug Fixes
+
+* publish file name ([bce5984](https://github.com/XYShaoKang/autocomplete/commit/bce5984abf63f1850dce58afff5dfdbd1613fb42))
+
 ## [1.0.1](https://github.com/XYShaoKang/autocomplete/compare/v1.0.0...v1.0.1) (2022-11-28)
 
 
