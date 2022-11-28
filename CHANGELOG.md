@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/XYShaoKang/autocomplete/compare/v1.0.0...v1.0.1) (2022-11-28)
+
+
+### Bug Fixes
+
+* file name ([6ed0bd1](https://github.com/XYShaoKang/autocomplete/commit/6ed0bd1835ddfb814be7dfb8446295dcfeb1f203))
+
 # 1.0.0 (2022-11-28)
 
 
