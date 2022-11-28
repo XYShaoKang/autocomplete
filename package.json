@@ -2,9 +2,9 @@
   "name": "@xyshaokang/autocomplete",
   "version": "1.0.0",
   "description": "",
-  "main": "lib/index.js",
-  "module": "lib/index.esm.js",
-  "types": "lib/index.d.ts",
+  "main": "lib/Autocomplete.d.js",
+  "module": "lib/Autocomplete.d.esm.js",
+  "types": "lib/Autocomplete.d.d.ts",
   "files": [
     "lib"
   ],
