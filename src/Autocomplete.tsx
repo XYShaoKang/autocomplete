@@ -3,7 +3,6 @@ import {
   FC,
   MouseEventHandler,
   useState,
-  useMemo,
   FocusEventHandler,
   useRef,
   useEffect,
@@ -11,6 +10,16 @@ import {
   SetStateAction,
 } from 'react'
 import { css } from 'styled-components'
+import { from, fromEvent, Observable, race } from 'rxjs'
+import {
+  debounceTime,
+  filter,
+  map,
+  mergeMap,
+  share,
+  take,
+  tap,
+} from 'rxjs/operators'
 
 interface AutocompleteProps {
   options?: string[]
@@ -41,18 +50,20 @@ const useDebounce = <T,>(
   return [state, changeState]
 }
 
+type User = {
+  id: string
+  name: string
+}
+
 const Autocomplete: FC<AutocompleteProps> = ({ options = [], placeholder }) => {
   const [value, setValue] = useState('')
   const [active, setActive] = useState(0)
   const [open, setOpen] = useDebounce(false)
   const [focus, setFocus] = useDebounce(false)
+  const [loading, setLoading] = useState(false)
   const selectRef = useRef(false)
   const inputRef = useRef<HTMLInputElement>(null)
-
-  const showOptions = useMemo(
-    () => (value ? options.filter(v => v.indexOf(value) === 0) : []),
-    [value, options]
-  )
+  const [result, setSearchResults] = useState<User[]>([])
 
   const handleChange: ChangeEventHandler<HTMLInputElement> = e => {
     setValue(e.target.value)
@@ -76,10 +87,75 @@ const Autocomplete: FC<AutocompleteProps> = ({ options = [], placeholder }) => {
   const handleSelect: MouseEventHandler<HTMLLIElement> = (): void => {
     selectRef.current = true
     setFocus(true)
-    setValue(showOptions[active])
+    setValue(result[active].name)
     setOpen(false)
     setActive(0)
   }
+
+  useEffect(() => {
+    if (!inputRef.current) return
+
+    const input$: Observable<string> = fromEvent<KeyboardEvent>(
+      inputRef.current,
+      'keyup'
+    ).pipe(
+      map(e => (e.target as HTMLInputElement).value),
+      share()
+    )
+
+    const searchQuery = (search: string) => {
+      const users = options.map(str => ({ id: str, name: str }))
+      return new Promise(function (resolve, _reject) {
+        setTimeout(() => {
+          resolve(users.filter(user => user.name.indexOf(search) === 0))
+        }, Math.random() * 1000)
+      })
+    }
+
+    const toggleWarning = (isShow: boolean) => {
+      if (isShow) alert('您输入的字符数过多!')
+    }
+
+    const reInput$ = input$
+    const subs1 = input$
+      .pipe(
+        debounceTime(500),
+        filter(str => str.length <= 30),
+        tap(str => str.length === 0 && setSearchResults([])),
+        filter(str => !!str),
+        mergeMap<string, Observable<User[]>>(str => {
+          setLoading(true)
+          return race(from(searchQuery(str)), reInput$).pipe(
+            tap(() => setLoading(false)),
+            filter(v => typeof v !== 'string')
+          ) as Observable<User[]>
+        }),
+        tap((res: User[]) => setSearchResults(res))
+      )
+      .subscribe()
+
+    const subs = input$
+      .pipe(
+        mergeMap(str =>
+          str.length <= 30
+            ? input$.pipe(
+                take(1),
+                filter(s => s.length > 30)
+              )
+            : input$.pipe(
+                take(1),
+                filter(s => s.length <= 30)
+              )
+        )
+      )
+      .subscribe(str => {
+        toggleWarning(str.length > 30)
+      })
+    return () => {
+      subs.unsubscribe()
+      subs1.unsubscribe()
+    }
+  }, [options])
 
   return (
     <div
@@ -135,7 +211,7 @@ const Autocomplete: FC<AutocompleteProps> = ({ options = [], placeholder }) => {
           `}
         />
       </div>
-      {!!showOptions.length && open && (
+      {((!!result.length && open) || loading) && (
         <ul
           css={css`
             position: absolute;
@@ -148,30 +224,34 @@ const Autocomplete: FC<AutocompleteProps> = ({ options = [], placeholder }) => {
             box-sizing: border-box;
           `}
         >
-          {showOptions.map((v, i) => (
-            <li
-              key={v}
-              onMouseEnter={() => setActive(i)}
-              css={css`
-                margin: 0;
-                padding: 0;
-                list-style: none;
-                min-height: 32px;
-                padding: 5px 12px;
-                color: rgba(0, 0, 0, 0.88);
-                font-size: 14px;
-                box-sizing: border-box;
-                cursor: pointer;
-                transition: background 0.3s ease;
-                border-radius: 4px;
-                display: flex;
-                ${active === i ? 'background-color: rgba(0, 0, 0, 0.04);' : ''}
-              `}
-              onMouseDown={handleSelect}
-            >
-              {v}
-            </li>
-          ))}
+          {loading
+            ? 'loading...'
+            : result.map((user, i) => (
+                <li
+                  key={user.id}
+                  onMouseEnter={() => setActive(i)}
+                  css={css`
+                    margin: 0;
+                    padding: 0;
+                    list-style: none;
+                    min-height: 32px;
+                    padding: 5px 12px;
+                    color: rgba(0, 0, 0, 0.88);
+                    font-size: 14px;
+                    box-sizing: border-box;
+                    cursor: pointer;
+                    transition: background 0.3s ease;
+                    border-radius: 4px;
+                    display: flex;
+                    ${active === i
+                      ? 'background-color: rgba(0, 0, 0, 0.04);'
+                      : ''}
+                  `}
+                  onMouseDown={handleSelect}
+                >
+                  {user.name}
+                </li>
+              ))}
         </ul>
       )}
     </div>

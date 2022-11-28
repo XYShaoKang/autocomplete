@@ -5,6 +5,16 @@ import Autocomplete from './Autocomplete'
 
 const user = userEvent.setup()
 
+// eslint-disable-next-line jest/require-top-level-describe
+beforeEach(() => {
+  jest.spyOn(global.Math, 'random').mockReturnValue(0.01)
+})
+
+// eslint-disable-next-line jest/require-top-level-describe
+afterEach(() => {
+  jest.spyOn(global.Math, 'random').mockRestore()
+})
+
 describe('basis', () => {
   it('default render', () => {
     expect.assertions(1)
@@ -169,5 +179,24 @@ describe('interaction', () => {
     items.forEach(el =>
       expect(el).not.toHaveStyle({ background: 'rgba(0, 0, 0, 0.04)' })
     )
+  })
+
+  it('type long text', async () => {
+    expect.assertions(2)
+    const alert = jest.fn()
+    global.alert = alert
+
+    const options = ['123', '124', '125', '234', '2345']
+    render(<Autocomplete placeholder="type text" options={options} />)
+
+    const input = screen.getByPlaceholderText('type text')
+    await user.pointer({ target: input, keys: '[MouseLeft]' })
+    await user.keyboard('1111111111111111111111111111111')
+
+    expect(alert.mock.calls).toHaveLength(1)
+
+    await user.keyboard('[Backspace][Backspace]')
+
+    await expect(screen.findByText('loading...')).resolves.toBeInTheDocument()
   })
 })
